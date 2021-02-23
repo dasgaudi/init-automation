@@ -1,0 +1,50 @@
+parameters:
+  - name: kubernetesServiceConnection
+    type: string
+    default: false
+  - name: host
+    type: string
+    default: false
+  - name: imageRepository
+    type: string
+    default: false
+  - name: imageTag
+    type: string
+    default: false
+  - name: statusCakeContactGroupID
+    type: string
+    default: false
+  - name: namespace
+    type: string
+    default: false
+  - name: databaseEnv
+    type: string
+    default: dev
+
+steps:
+  - task: KubernetesManifest@0
+    name: bake
+    displayName: Bake manifests
+    inputs:
+      action: bake
+      helmChart: 'cicd/helm/backend'
+      overrides: |-
+        image.repository:${{ parameters.imageRepository }}
+        image.tag:${{ parameters.imageTag }}
+
+        ingress.hosts[0].host:${{ parameters.host }}
+        ingress.hosts[0].paths:{}
+        ingress.tls[0].secretName:karibou-tls
+        ingress.tls[0].hosts[0]:${{ parameters.host }}
+
+        ingress.annotations.monitor\.stakater\.com/enabled:true
+
+        database.namespace:${{ parameters.namespace }}
+        database.env:${{ parameters.databaseEnv }}
+  - task: KubernetesManifest@0
+    displayName: Deploy to k8s
+    inputs:
+      action: 'deploy'
+      kubernetesServiceConnection: ${{ parameters.kubernetesServiceConnection }}
+      namespace: ${{ parameters.namespace }}
+      manifests: $(bake.manifestsBundle)

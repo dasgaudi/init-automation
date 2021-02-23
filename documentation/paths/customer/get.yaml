@@ -1,0 +1,10 @@
+summary: Get all customers
+responses:
+  '200':
+    description: array of customers
+    content:
+      application/json:
+        schema:
+          type: array
+          items:
+            $ref: '../../components/schemas/customer/get.yaml'

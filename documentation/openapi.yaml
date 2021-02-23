@@ -1,0 +1,42 @@
+openapi: 3.0.0
+info:
+  title: Karibou
+  description: Kotlin Starter Project API Docs
+  version: 0.0.1
+  x-logo:
+    url: 'https://mk0bushelmtprod77fna.kinstacdn.com/wp-content/uploads/2019/06/logo-616x117.png'
+servers:
+  - url: http://localhost:9080/api
+    description: Local development api path
+paths:
+  /customers:
+    # For some reason the ide thinks there cannot be more than one #ref under customers, but it works and this is what the docs show.
+    get:
+      $ref: './paths/customer/get.yaml'
+    post:
+      $ref: './paths/customer/post.yaml'
+  /customers/{id}:
+    get:
+      $ref: './paths/customer/find.yaml'
+    put:
+      $ref: './paths/customer/update.yaml'
+    delete:
+      $ref: './paths/customer/delete.yaml'
+components:
+  # examples, we don't have any currently defined security schemas
+  securitySchemes:
+    Main_Example_Auth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: 'api/oauth/dialog'
+          scopes:
+            'read:users': read users info
+            'write:users': modify or remove users
+    API_Key:
+      type: apiKey
+      in: header
+      name: api_key
+    Basic_Example_Auth:
+      type: http
+      scheme: basic

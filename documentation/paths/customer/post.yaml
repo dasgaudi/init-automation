@@ -1,0 +1,17 @@
+summary: Add a new customer
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        type: object
+        $ref: '../../components/schemas/customer/create.yaml'
+responses:
+  '201':
+    description: customer object
+    content:
+      application/json:
+        schema:
+          type: array
+          items:
+            $ref: '../../components/schemas/customer/get.yaml'

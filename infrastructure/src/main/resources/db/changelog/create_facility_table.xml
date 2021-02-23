@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+           http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="create_facility_table" author="ewalter">
+        <createTable tableName="facility">
+            <column name="id" type="${type.uuid}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="region_id" type="${type.uuid}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+        <createIndex tableName="facility" indexName="id_index" unique="true">
+            <column name="id" />
+        </createIndex>
+        <addForeignKeyConstraint
+            baseColumnNames="region_id"
+            baseTableName="facility"
+            referencedColumnNames="id"
+            referencedTableName="region"
+            constraintName="fk_facility_region"/>
+    </changeSet>
+
+</databaseChangeLog>

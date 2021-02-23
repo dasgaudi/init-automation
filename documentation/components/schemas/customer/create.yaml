@@ -1,0 +1,24 @@
+type: object
+title: Create Customer Request
+required:
+  - name
+  - address
+  - city
+  - state
+  - postal_code
+properties:
+  name:
+    type: string
+    example: John Doe
+  address:
+    type: string
+    example: 505 Bushel Drive
+  city:
+    type: string
+    example: Fargo
+  state:
+    type: string
+    example: ND
+  postal_code:
+    type: string
+    example: 58102

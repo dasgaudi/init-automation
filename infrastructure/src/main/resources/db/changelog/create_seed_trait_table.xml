@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+           http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <changeSet id="create_seed_trait_table" author="jwhite">
+        <createTable tableName="seed_trait">
+            <column name="id" type="${type.uuid}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="trait" type="varchar(255) ">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_active" type="bit" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+        <createIndex tableName="seed_trait" indexName="id_index" unique="true">
+            <column name="id" />
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

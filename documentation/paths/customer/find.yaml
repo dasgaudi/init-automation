@@ -1,0 +1,19 @@
+summary: Get a customer by id
+parameters:
+  - name: id
+    in: path
+    required: true
+    description: the id of the customer to retrieve
+    schema:
+      type: string
+      format: UUID
+responses:
+  200:
+    description: Response to valid request
+    content:
+      application/json:
+        schema:
+          type: object
+          $ref: '../../components/schemas/customer/get.yaml'
+  404:
+    description: Customer was not found.

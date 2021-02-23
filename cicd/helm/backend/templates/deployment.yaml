@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "backend.fullname" . }}
+  labels:
+    {{- include "backend.labels" . | nindent 4 }}
+spec:
+{{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+{{- end }}
+  selector:
+    matchLabels:
+      {{- include "backend.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        vault.hashicorp.com/role: "{{ .Values.database.namespace }}"
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/secret-volume-path: "/vault/secrets"
+        vault.hashicorp.com/agent-inject-file-config: "config"
+        vault.hashicorp.com/agent-inject-secret-config: "mysql/creds/mysql02-{{ .Values.database.env }}_{{ .Values.database.namespace }}_3306_writer"
+        vault.hashicorp.com/agent-inject-template-config: |
+          {{`{{- with secret "mysql/creds/mysql02-`}}{{ .Values.database.env }}{{`_`}}{{ .Values.database.namespace }}{{`_3306_writer" -}}
+            export SPRING_DATASOURCE_USERNAME="{{ .Data.username }}"
+            export SPRING_DATASOURCE_PASSWORD="{{ .Data.password }}"
+          {{- end }}`}}
+      labels:
+        {{- include "backend.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "backend.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.deployment.containerPort }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /api/is/live
+              port: {{ .Values.deployment.containerPort }}
+          readinessProbe:
+            httpGet:
+              path: /api/is/live
+              port: {{ .Values.deployment.containerPort }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            - name: "VAULT_ADDR"
+              value: {{ .Values.vaultAddress }}
+            - name: "SPRING_DATASOURCE_URL"
+              value: "jdbc:mariadb://mysql02-{{ .Values.database.env }}-internal.1e4h.net:3306/{{ .Values.database.namespace }}?useSSL=true&requireSSL=true&enabledTLSProtocols=TLSv1.2&trustServerCertificate=true"
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,0 +1,45 @@
+parameters:
+- name: repository
+  type: string
+  default: false
+- name: tag
+  type: string
+  default: false
+
+steps:
+  - task: Gradle@2
+    displayName: Assemble Jar
+    inputs:
+      gradleWrapperFile: 'gradlew'
+      tasks: 'assemble'
+      jdkVersionOption: '1.11'
+      publishJUnitResults: false
+      javaHomeOption: 'JDKVersion'
+      sonarQubeRunAnalysis: false
+  - task: Gradle@2
+    displayName: Unpack Jar
+    inputs:
+      gradleWrapperFile: 'gradlew'
+      tasks: 'unpackJar'
+      jdkVersionOption: '1.11'
+      publishJUnitResults: false
+      javaHomeOption: 'JDKVersion'
+      sonarQubeRunAnalysis: false
+  - task: Docker@2
+    displayName: Build Docker image
+    inputs:
+      command: 'build'
+      tags: |
+        ${{ parameters.tag }}
+      containerRegistry: gcr
+      repository: ${{ parameters.repository }}
+      Dockerfile: './cicd/Dockerfile'
+      buildContext: .
+  - task: Docker@2
+    displayName: Push Docker image
+    inputs:
+      command: push
+      tags: |
+        ${{ parameters.tag }}
+      containerRegistry: gcr
+      repository: ${{ parameters.repository }}

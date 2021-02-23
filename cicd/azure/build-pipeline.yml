@@ -1,0 +1,128 @@
+# Gradle
+# Build your Java project and run tests with Gradle using a Gradle wrapper script.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/java
+
+variables:
+  GCR.ProjectName: elevated-elephant-949
+  GCR.RepositoryName: $(GCR.ProjectName)/karibou
+  GCR.RepositoryURI: gcr.io/$(GCR.RepositoryName)
+  ImageTag: $(Build.SourceVersion)
+
+  ShouldBuildImage: ${{ in(variables['Build.SourceBranchName'], 'master', 'production' ) }}
+  ShouldDeploy: ${{ in(variables['Build.SourceBranchName'], 'master', 'production' ) }}
+  ShouldDeployDev: ${{ in(variables['Build.SourceBranchName'], 'master' ) }}
+#    Disabled for Karibou as no upper environments
+  ShouldDeployUAT: false
+  ShouldDeployProd: false
+#  ShouldDeployUAT: ${{ in(variables['Build.SourceBranchName'], 'master' ) }}
+#  ShouldDeployProd: ${{ in(variables['Build.SourceBranchName'], 'production' ) }}
+  GRADLE_USER_HOME: $(Pipeline.Workspace)/.gradle
+
+trigger:
+  - master
+  - production
+
+pr:
+  branches:
+    include:
+      - master
+
+stages:
+  - stage: Build
+    displayName: Build
+    jobs:
+      - job: Test
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: Cache@2
+            inputs:
+              key: 'gradle | "$(Agent.OS)"'
+              restoreKeys: gradle
+              path: $(GRADLE_USER_HOME)
+            displayName: Gradle build cache
+          - task: CmdLine@2
+            inputs:
+              script: |
+                make db/start
+          - task: Gradle@2
+            displayName: 'Unit Test'
+            enabled: true
+            inputs:
+              gradleWrapperFile: 'gradlew'
+              tasks: 'check'
+              publishJUnitResults: true
+              testResultsFiles: '**/TEST-*.xml'
+              javaHomeOption: 'JDKVersion'
+              jdkVersionOption: '1.11'
+              gradleOptions: '-Xmx3072m'
+              sonarQubeRunAnalysis: false
+      - job: Package
+        dependsOn: Test
+        condition: and(succeeded(), eq(variables.ShouldBuildImage, true))
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - template: templates/steps.build-and-push-docker-image.yaml
+            parameters:
+              repository: $(GCR.RepositoryName)
+              tag: $(ImageTag)
+  - stage: Deploy
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables.ShouldDeploy, true))
+    jobs:
+      - deployment: DeployDev
+        environment: Dev
+        condition: eq(variables.ShouldDeployDev, true)
+        pool:
+          vmImage: 'ubuntu-latest'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - template: templates/steps.bake-manifests-and-deploy.yaml
+                  parameters:
+                    kubernetesServiceConnection: 'solutions-cluster'
+                    host: 'karibou.sol.bushelsites.com'
+                    imageRepository: $(GCR.RepositoryURI)
+                    imageTag: $(ImageTag)
+                    namespace: 'karibou'
+                    databaseEnv: 'dev'
+      - deployment: DeployUAT
+        environment: UAT
+        condition: eq(variables.ShouldDeployUAT, true)
+        pool:
+          vmImage: 'ubuntu-latest'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - template: templates/steps.bake-manifests-and-deploy.yaml
+                  parameters:
+                    kubernetesServiceConnection: 'solutions-cluster'
+                    host: 'karibou-uat.sol.bushelsites.com'
+                    imageRepository: $(GCR.RepositoryURI)
+                    imageTag: $(ImageTag)
+                    namespace: 'karibou-uat'
+                    databaseEnv: 'dev'
+      - deployment: DeployProd
+        environment: Prod
+        condition: eq(variables.ShouldDeployProd, true)
+        pool:
+          vmImage: 'ubuntu-latest'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - template: templates/steps.bake-manifests-and-deploy.yaml
+                  parameters:
+                    kubernetesServiceConnection: 'solutions-cluster'
+                    host: 'karibou.sol.bushelsites.com'
+                    imageRepository: $(GCR.RepositoryURI)
+                    imageTag: $(ImageTag)
+                    namespace: 'karibou'
+                    databaseEnv: 'prod'

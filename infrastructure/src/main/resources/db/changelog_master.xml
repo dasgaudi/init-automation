@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+           http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+
+    <property name="type.uuid" value="binary(16)" />
+
+    <include relativeToChangelogFile="true" file="changelog/create_region_table.xml"/> <!-- 1 -->
+    <include relativeToChangelogFile="true" file="changelog/create_facility_table.xml"/> <!-- 2 -->
+    <include relativeToChangelogFile="true" file="changelog/create_customer_table.xml"/> <!-- 3 -->
+    <include relativeToChangelogFile="true" file="changelog/create_seed_table.xml"/> <!-- 4 -->
+    <include relativeToChangelogFile="true" file="changelog/create_seed_trait_table.xml"/> <!-- 5 -->
+    <include relativeToChangelogFile="true" file="changelog/create_seed_seed_trait_xref_table.xml"/> <!-- 6 -->
+
+</databaseChangeLog>

@@ -1,0 +1,29 @@
+type: object
+title: Update Customer Request
+required:
+  - name
+  - address
+  - city
+  - state
+  - postal_code
+properties:
+  id:
+    type: string
+    format: UUID
+    example: 78836bdb-1696-44ed-ab9a-804e56e4cbbc
+  name:
+    type: string
+    required: true
+    example: John Doe
+  address:
+    type: string
+    example: 505 Bushel Drive
+  city:
+    type: string
+    example: Fargo
+  state:
+    type: string
+    example: ND
+  postal_code:
+    type: string
+    example: 58102

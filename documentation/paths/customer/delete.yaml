@@ -1,0 +1,14 @@
+summary: Get a customer by id
+parameters:
+  - name: id
+    in: path
+    required: true
+    description: the id of the customer to retrieve
+    schema:
+      type: string
+      format: UUID
+responses:
+  204:
+    description: Customer removed successfully.
+  404:
+    description: Customer was not found.

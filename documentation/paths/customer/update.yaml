@@ -1,0 +1,28 @@
+
+summary: Update a customer
+parameters:
+  - name: id
+    in: path
+    required: true
+    description: the id of the customer to retrieve
+    schema:
+      type: string
+      format: UUID
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        type: object
+        $ref: '../../components/schemas/customer/update.yaml'
+responses:
+  '200':
+    description: customer object
+    content:
+      application/json:
+        schema:
+          type: array
+          items:
+            $ref: '../../components/schemas/customer/get.yaml'
+  '404':
+    description: Customer was not found.
